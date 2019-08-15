@@ -3,6 +3,8 @@
 static byte mymac[] = { 0x1A,0x2B,0x3C,0x4D,0x5E,0x6F };
 byte Ethernet::buffer[700];
 
+const int arduinoSSPin = 8;
+
 const char website[] PROGMEM = "192.168.0.2";
 const char apiPath[] PROGMEM = "/api/endpoints/10/data/";
 const char websiteFull[] PROGMEM = "192.168.0.2:8000";
@@ -19,8 +21,10 @@ Stash stash;
 void setup () {
   Serial.begin(9600);
 
-  // Change 'SS' to your Slave Select pin, here 8 is selected
-  if (ether.begin(sizeof Ethernet::buffer, mymac, 8) == 0) {
+  randomSeed(analogRead(0));
+
+  // Change 'SS' to your Slave Select pin
+  if (ether.begin(sizeof Ethernet::buffer, mymac, arduinoSSPin) == 0) {
     Serial.println( "Failed to access Ethernet controller");
   }
   if (!ether.dhcpSetup()) {
@@ -62,8 +66,16 @@ static void sendUpdate () {
   Serial.println("Sending message...");
   byte sd = stash.create();
 
-  const char message[] = "{\"data\": \"cookies\", \"label\": \"arduino\", \"timestamp\": \"2019-10-20T03:14\"}";
-  stash.println(message);
+  // const char message[] = "{\"data\": \"cookies\", \"label\": \"arduino\", \"timestamp\": \"2019-10-20T03:14\"}";
+  const char message1[] = "{"
+    "\"data\": {"
+      "\"cookies\":";
+  const char message2[] = "},"
+    " \"label\": \"arduino random int without timestamp\""
+  "}";
+  stash.print(message1);
+  stash.print(random(1, 100));
+  stash.print(message2);
   stash.save();
   int stash_size = stash.size();
 
